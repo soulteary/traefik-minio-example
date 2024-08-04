@@ -2,19 +2,19 @@ name: minio
 
 services:
   minio:
-    container_name: minio
+    container_name: ${SERVICE_NAME}
+    image: ${DOCKER_IMAGE}
     ports:
-      - 9000:9000
-      - 9001:9001
-    image: minio/minio:RELEASE.2024-08-03T04-33-23Z
+      - 9000:${API_PORT}
+      - 9001:${DASHBOARD_PORT}
     environment:
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/core.html
-      - MINIO_DOMAIN=minio.lab.io
+      - MINIO_DOMAIN=${API_DOMAIN}
       - MINIO_COMPRESSION_ENABLE=on
       - MINIO_COMPRESSION_ALLOW_ENCRYPTION=off
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/root-credentials.html
-      - MINIO_ROOT_USER=soulteary
-      - MINIO_ROOT_PASSWORD=soulteary
+      - MINIO_ROOT_USER=${ADMIN_USER}
+      - MINIO_ROOT_PASSWORD=${ADMIN_PASS}
       - MINIO_API_ROOT_ACCESS=on
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/console.html
       - MINIO_BROWSER=on
@@ -22,12 +22,12 @@ services:
       - MINIO_BROWSER_REDIRECT=false
       - MINIO_BROWSER_SESSION_DURATION=365d
       # refs: https://min.io/docs/minio/linux/reference/minio-server/minio-server.html
-    command: server /data --address=":9000" --console-address=":9001"
+    command: server /data --address=":${API_PORT}" --console-address=":${DASHBOARD_PORT}"
     volumes:
-      - ./minio-data:/data
-      - ./config:/root/.minio
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
     extra_hosts:
-      - "minio.lab.io:127.0.0.1"
+      - "${API_DOMAIN}:127.0.0.1"
     healthcheck:
         # refs:
         # - https://min.io/docs/minio/linux/reference/minio-mc/mc-ready.html

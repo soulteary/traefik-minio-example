@@ -2,16 +2,16 @@ name: minio
 
 services:
   minio:
-    container_name: minio
-    image: minio/minio:RELEASE.2024-08-03T04-33-23Z
+    container_name: ${SERVICE_NAME}
+    image: ${DOCKER_IMAGE}
     environment:
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/core.html
-      - MINIO_DOMAIN=minio.lab.io
+      - MINIO_DOMAIN=${API_DOMAIN}
       - MINIO_COMPRESSION_ENABLE=on
       - MINIO_COMPRESSION_ALLOW_ENCRYPTION=off
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/root-credentials.html
-      - MINIO_ROOT_USER=soulteary
-      - MINIO_ROOT_PASSWORD=soulteary
+      - MINIO_ROOT_USER=${ADMIN_USER}
+      - MINIO_ROOT_PASSWORD=${ADMIN_PASS}
       - MINIO_API_ROOT_ACCESS=on
       # refs: https://min.io/docs/minio/linux/reference/minio-server/settings/console.html
       - MINIO_BROWSER=on
@@ -19,7 +19,7 @@ services:
       - MINIO_BROWSER_REDIRECT=false
       - MINIO_BROWSER_SESSION_DURATION=365d
       # refs: https://min.io/docs/minio/linux/reference/minio-server/minio-server.html
-    command: server /data --address=":9000" --console-address=":9001"
+    command: server /data --address=":${API_PORT}" --console-address=":${DASHBOARD_PORT}"
     networks:
       - traefik
     labels:
@@ -33,7 +33,7 @@ services:
       #   并自动跳转至 HTTPS 协议（443端口）
       - "traefik.http.routers.minio-http.middlewares=redir-https"
       #   默认服务域名为 minio.lab.io
-      - "traefik.http.routers.minio-http.rule=Host(`minio.lab.io`)"
+      - "traefik.http.routers.minio-http.rule=Host(`${API_DOMAIN}`)"
       #   服务名称为 noop@internal，表示不提供任何服务 (因为自动跳转，没必要请求服务)
       - "traefik.http.routers.minio-http.service=noop@internal"
       # - HTTPS 相关设置：
@@ -44,12 +44,12 @@ services:
       #   对响应内容启用 GZIP 压缩
       - "traefik.http.routers.minio-https.middlewares=gzip"
       #   默认服务域名为 minio.lab.io
-      - "traefik.http.routers.minio-https.rule=Host(`minio.lab.io`)"
+      - "traefik.http.routers.minio-https.rule=Host(`${API_DOMAIN}`)"
       #   HTTPS 服务名称为 minio-backend，使用 9000 端口提供服务
       - "traefik.http.routers.minio-https.service=minio-backend"
       # 声明服务名称为 minio-backend，使用 9000 端口提供服务
       - "traefik.http.services.minio-backend.loadbalancer.server.scheme=http"
-      - "traefik.http.services.minio-backend.loadbalancer.server.port=9000"
+      - "traefik.http.services.minio-backend.loadbalancer.server.port=${API_PORT}"
 
       # MinIO Admin 服务相关
       # - HTTP 相关设置：
@@ -58,7 +58,7 @@ services:
       #   并自动跳转至 HTTPS 协议（443端口）
       - "traefik.http.routers.minio-admin-http.middlewares=redir-https"
       #   默认服务域名为 minio.console.lab.io
-      - "traefik.http.routers.minio-admin-http.rule=Host(`minio.console.lab.io`)"
+      - "traefik.http.routers.minio-admin-http.rule=Host(`${DASHBOARD_DOMAIN}`)"
       #   服务名称为 noop@internal，表示不提供任何服务 (因为自动跳转，没必要请求服务)
       - "traefik.http.routers.minio-admin-http.service=noop@internal"
       # - HTTPS 相关设置：
@@ -69,18 +69,18 @@ services:
       #   对响应内容启用 GZIP 压缩
       - "traefik.http.routers.minio-admin-https.middlewares=gzip"
       #   默认服务域名为 minio.console.lab.io
-      - "traefik.http.routers.minio-admin-https.rule=Host(`minio.console.lab.io`)"
-      #   HTTPS 服务名称为 minio-backend，使用 9000 端口提供服务
+      - "traefik.http.routers.minio-admin-https.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      #   HTTPS 服务名称为 minio-backend，使用 9001 端口提供服务
       - "traefik.http.routers.minio-admin-https.service=minio-admin-backend"
-      # 声明服务名称为 minio-backend，使用 9000 端口提供服务
+      # 声明服务名称为 minio-backend，使用 9001 端口提供服务
       - "traefik.http.services.minio-admin-backend.loadbalancer.server.scheme=http"
       - "traefik.http.services.minio-admin-backend.loadbalancer.server.port=9001"
     volumes:
-      - ./minio-data:/data
-      - ./config:/root/.minio
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
     extra_hosts:
-      - "minio.lab.io:127.0.0.1"
-      - "minio.console.lab.io:127.0.0.1"
+      - "${API_DOMAIN}:127.0.0.1"
+      - "${DASHBOARD_DOMAIN}:127.0.0.1"
     healthcheck:
         # refs:
         # - https://min.io/docs/minio/linux/reference/minio-mc/mc-ready.html
