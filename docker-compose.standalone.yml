@@ -22,7 +22,7 @@ services:
       - MINIO_BROWSER_REDIRECT=false
       - MINIO_BROWSER_SESSION_DURATION=365d
       # refs: https://min.io/docs/minio/linux/reference/minio-server/minio-server.html
-    command: server /data --address=":9000"  --console-address=":9001"
+    command: server /data --address=":9000" --console-address=":9001"
     volumes:
       - ./minio-data:/data
       - ./config:/root/.minio
