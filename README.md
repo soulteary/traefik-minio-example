@@ -6,7 +6,7 @@
 
 ## 完整使用方法
 
-TBD
+- [《Docker 环境下使用 Traefik v3 和 MinIO 快速搭建私有化对象存储服务》](https://soulteary.com/2024/08/05/best-practices-for-traefik-3-and-minio-in-docker-getting-started-quickly.html)
 
 ## 相关程序
 
